@@ -1,0 +1,144 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
+const steps = [
+  "intro",
+  "instruksi-hitungan",
+  "skd-hitungan",
+  "instruksi-twk",
+  "twk",
+  "instruksi-pu",
+  "pu",
+  "instruksi-tkb",
+  "tkb",
+  "hasil"
+];
+
+export default function TrialTesSKD() {
+  const [step, setStep] = useState("intro");
+  const [timeLeft, setTimeLeft] = useState(55 * 60); // 55 minutes
+  const [jawaban, setJawaban] = useState({});
+  const [timerActive, setTimerActive] = useState(false);
+
+  useEffect(() => {
+    let timer;
+    if (timerActive && timeLeft > 0) {
+      timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+    } else if (timeLeft === 0) {
+      setStep("hasil");
+    }
+    return () => clearInterval(timer);
+  }, [timeLeft, timerActive]);
+
+  const mulaiTes = () => {
+    setStep("instruksi-hitungan");
+  };
+
+  const handleNextStep = () => {
+    const currentIndex = steps.indexOf(step);
+    const nextStep = steps[currentIndex + 1];
+    setStep(nextStep);
+
+    // Start or resume timer only when entering a question section
+    if (["skd-hitungan", "twk", "pu", "tkb"].includes(nextStep)) {
+      setTimerActive(true);
+    } else {
+      setTimerActive(false);
+    }
+  };
+
+  const formatWaktu = s => {
+    const m = Math.floor(s / 60);
+    const d = (s % 60).toString().padStart(2, "0");
+    return `${m}:${d}`;
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto p-4">
+      {step !== "intro" && step !== "hasil" && (
+        <div className="fixed top-4 right-4 bg-white border p-2 rounded shadow">
+          ⏱️ Sisa Waktu: {formatWaktu(timeLeft)}
+        </div>
+      )}
+
+      {step === "intro" && (
+        <div className="grid md:grid-cols-2 gap-6 items-center">
+          <div>
+            <img
+              src="https://drive.google.com/uc?export=view&id=1hdjcABnfpZm4IPqs9KIGZAxuk0VpY2Lo"
+              alt="Ilustrasi RS Sudarso"
+              className="rounded-xl shadow-md w-full"
+            />
+          </div>
+          <div className="text-left">
+            <h1 className="text-2xl font-bold mb-4">
+              Halo Imam! Selamat Datang di Trial Tes SKD untuk Lolos Posisi Administrasi di RS Sudarso
+            </h1>
+            <div className="bg-gray-100 p-4 rounded mb-4">
+              <h2 className="text-lg font-semibold mb-2">📋 Instruksi Sebelum Memulai Tes</h2>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Pastikan koneksi internet stabil selama mengerjakan tes agar tidak terjadi gangguan saat berpindah halaman.</li>
+                <li>Tes terdiri dari <strong>60 soal</strong> yang dibagi dalam 4 kategori: SKD Hitungan, TWK, Pengetahuan Umum, dan TKB Administrasi.</li>
+                <li>Kamu memiliki waktu <strong>55 menit</strong> untuk menyelesaikan seluruh soal.</li>
+                <li>Setiap bagian tes diawali dengan <strong>penjelasan singkat dan contoh soal + pembahasan</strong>.</li>
+                <li>Setelah waktu habis, tes akan otomatis ditutup dan hasil akhir langsung ditampilkan.</li>
+              </ol>
+            </div>
+            <Button onClick={mulaiTes}>Mulai Tes</Button>
+          </div>
+        </div>
+      )}
+
+      {step.includes("instruksi") && (
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Instruksi: {step.split("-")[1].toUpperCase()}</h2>
+          <p className="mb-4">Berikut adalah penjelasan dan contoh soal dari kategori ini.</p>
+          <div className="bg-gray-100 p-4 rounded mb-4">
+            <p><strong>Contoh Soal:</strong> (placeholder)</p>
+            <p><strong>Pembahasan:</strong> (placeholder)</p>
+          </div>
+          <Button onClick={handleNextStep}>Paham, Mulai Soal</Button>
+        </div>
+      )}
+
+      {step === "skd-hitungan" && <SoalSection judul="SKD Hitungan" jumlah={15} onSelesai={handleNextStep} />}
+      {step === "twk" && <SoalSection judul="Tes Wawasan Kebangsaan" jumlah={15} onSelesai={handleNextStep} />}
+      {step === "pu" && <SoalSection judul="Pengetahuan Umum" jumlah={15} onSelesai={handleNextStep} />}
+      {step === "tkb" && <SoalSection judul="TKB Administrasi" jumlah={15} onSelesai={() => setStep("hasil")} />}
+
+      {step === "hasil" && <HasilAkhir jawaban={jawaban} />}
+    </div>
+  );
+}
+
+function SoalSection({ judul, jumlah, onSelesai }) {
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">{judul}</h2>
+      <p>(Placeholder untuk {jumlah} soal)</p>
+      <Button className="mt-4" onClick={onSelesai}>Selesai</Button>
+    </div>
+  );
+}
+
+function HasilAkhir({ jawaban }) {
+  const skor = Math.floor(Math.random() * 100); // simulasi skor
+  const lulus = skor >= 70;
+
+  return (
+    <div className="text-center">
+      <h2 className="text-2xl font-bold mb-2">Hasil Akhir</h2>
+      <p className="mb-2">Jumlah Jawaban Benar: {Math.floor((skor / 100) * 60)} dari 60</p>
+      <p className="mb-4">Nilai Akhir: {skor}%</p>
+      {lulus ? (
+        <p className="text-green-600 font-semibold">
+          Selamat Imam telah menyelesaikan trial dengan hasil yang baik! Kita siap merayakan dengan bakar-bakar sosis dan Akmal traktir beli baju dinas 🎉
+        </p>
+      ) : (
+        <p className="text-red-600 font-semibold">
+          Imam harus lebih banyak belajar. Semangat terus ya! 💪
+        </p>
+      )}
+    </div>
+  );
+}
